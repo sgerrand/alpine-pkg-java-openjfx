@@ -1,0 +1,41 @@
+diff --git a/build.gradle b/build.gradle
+index a666689..70cddc9 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -720,33 +720,9 @@ if (!file(JAVAH).exists()) throw new Exception("Missing or incorrect path to 'ja
+ if (!file(JAVADOC).exists()) throw new Exception("Missing or incorrect path to 'javadoc': '$JAVADOC'. Perhaps bad JDK_HOME? $JDK_HOME")
+ 
+ 
+-// Determine the verion of Java in JDK_HOME. It looks like this:
+-//
+-// $ java -version
+-// java version "1.7.0_45"
+-// Java(TM) SE Runtime Environment (build 1.7.0_45-b18)
+-// Java HotSpot(TM) 64-Bit Server VM (build 24.45-b08, mixed mode)
+-//
+-// We need to parse the second line
+-def inStream = new java.io.BufferedReader(new java.io.InputStreamReader(new java.lang.ProcessBuilder(JAVA, "-version").start().getErrorStream()));
+-try {
+-    if (inStream.readLine() != null) {
+-        String v = inStream.readLine();
+-        if (v != null) {
+-            int ib = v.indexOf(" (build ");
+-            if (ib != -1) {
+-                String ver = v.substring(ib + 8, v.size() - 1);
+-
+-                defineProperty("jdkRuntimeVersion", ver)
+-                defineProperty("jdkVersion", jdkRuntimeVersion.split("-")[0])
+-                defineProperty("jdkBuildNumber", jdkRuntimeVersion.substring(jdkRuntimeVersion.lastIndexOf("-b") + 2))
+-            }
+-        }
+-    }
+-} finally {
+-    inStream.close();
+-}
+-if (!project.hasProperty("jdkRuntimeVersion")) throw new Exception("Unable to determine the version of Java in JDK_HOME at $JDK_HOME");
++defineProperty("jdkRuntimeVersion", "1.8.0_151-b12")
++defineProperty("jdkVersion", "1.8.0_151")
++defineProperty("jdkBuildNumber", "12")
+ 
+ 
+ 

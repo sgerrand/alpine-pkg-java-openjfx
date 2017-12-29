@@ -1,0 +1,86 @@
+diff --git a/modules/graphics/src/main/native-glass/gtk/GlassApplication.cpp b/modules/graphics/src/main/native-glass/gtk/GlassApplication.cpp
+index c909e70..4de37d6 100644
+--- a/modules/graphics/src/main/native-glass/gtk/GlassApplication.cpp
++++ b/modules/graphics/src/main/native-glass/gtk/GlassApplication.cpp
+@@ -271,7 +271,7 @@ JNIEXPORT jlong JNICALL Java_com_sun_glass_ui_gtk_GtkApplication_staticView_1get
+ 
+     static gint multi_click_time = -1;
+     if (multi_click_time == -1) {
+-        g_object_get(gtk_settings_get_default(), "gtk-double-click-time", &multi_click_time, NULL);
++        g_object_get(gtk_settings_get_default(), "gtk-double-click-time", &multi_click_time, (char*)NULL);
+     }
+     return (jlong)multi_click_time;
+ }
+@@ -290,7 +290,7 @@ JNIEXPORT jint JNICALL Java_com_sun_glass_ui_gtk_GtkApplication_staticView_1getM
+     static gint multi_click_dist = -1;
+ 
+     if (multi_click_dist == -1) {
+-        g_object_get(gtk_settings_get_default(), "gtk-double-click-distance", &multi_click_dist, NULL);
++        g_object_get(gtk_settings_get_default(), "gtk-double-click-distance", &multi_click_dist, (char*)NULL);
+     }
+     return multi_click_dist;
+ }
+diff --git a/modules/graphics/src/main/native-glass/gtk/GlassCommonDialogs.cpp b/modules/graphics/src/main/native-glass/gtk/GlassCommonDialogs.cpp
+index c53929d..5941b2c 100644
+--- a/modules/graphics/src/main/native-glass/gtk/GlassCommonDialogs.cpp
++++ b/modules/graphics/src/main/native-glass/gtk/GlassCommonDialogs.cpp
+@@ -118,7 +118,7 @@ JNIEXPORT jobject JNICALL Java_com_sun_glass_ui_gtk_GtkCommonDialogs__1showFileC
+             GTK_RESPONSE_CANCEL,
+             (chooser_type == GTK_FILE_CHOOSER_ACTION_OPEN ? GTK_STOCK_OPEN : GTK_STOCK_SAVE),
+             GTK_RESPONSE_ACCEPT,
+-            NULL);
++            (char*)NULL);
+ 
+     if (chooser_type == GTK_FILE_CHOOSER_ACTION_SAVE) {
+         gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(chooser), chooser_filename);
+@@ -205,7 +205,7 @@ JNIEXPORT jstring JNICALL Java_com_sun_glass_ui_gtk_GtkCommonDialogs__1showFolde
+             GTK_RESPONSE_CANCEL,
+             GTK_STOCK_OPEN,
+             GTK_RESPONSE_ACCEPT,
+-            NULL);
++            (char*)NULL);
+ 
+     if (chooser_folder != NULL) {
+         gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(chooser),
+diff --git a/modules/graphics/src/main/native-glass/gtk/glass_dnd.cpp b/modules/graphics/src/main/native-glass/gtk/glass_dnd.cpp
+index f85b1da..d523809 100644
+--- a/modules/graphics/src/main/native-glass/gtk/glass_dnd.cpp
++++ b/modules/graphics/src/main/native-glass/gtk/glass_dnd.cpp
+@@ -688,7 +688,7 @@ static gboolean dnd_source_set_image(GdkWindow *requestor, GdkAtom property, Gdk
+     mainEnv->CallVoidMethod(pixels, jPixelsAttachData, PTR_TO_JLONG(&pixbuf));
+ 
+     if (!EXCEPTION_OCCURED(mainEnv)
+-            && gdk_pixbuf_save_to_buffer(pixbuf, &buffer, &size, type, NULL, NULL)) {
++            && gdk_pixbuf_save_to_buffer(pixbuf, &buffer, &size, type, NULL, (char*)NULL)) {
+         gdk_property_change(requestor, property, target,
+                 8, GDK_PROP_MODE_REPLACE, (guchar *)buffer, size);
+         result = TRUE;
+diff --git a/modules/graphics/src/main/native-glass/gtk/glass_window_ime.cpp b/modules/graphics/src/main/native-glass/gtk/glass_window_ime.cpp
+index 82e54d1..49ba05e 100644
+--- a/modules/graphics/src/main/native-glass/gtk/glass_window_ime.cpp
++++ b/modules/graphics/src/main/native-glass/gtk/glass_window_ime.cpp
+@@ -204,7 +204,7 @@ static XIMStyle get_best_supported_style(XIM im_xim)
+     int i;
+     XIMStyle result = 0;
+ 
+-    if (XGetIMValues(im_xim, XNQueryInputStyle, &styles, NULL) != NULL) { // NULL means it's OK
++    if (XGetIMValues(im_xim, XNQueryInputStyle, &styles, (char*)NULL) != NULL) { // NULL means it's OK
+         return 0;
+     }
+ 
+@@ -244,13 +244,13 @@ void WindowContextBase::enableOrResetIME() {
+                 XNPreeditDoneCallback, &doneCallback,
+                 XNPreeditDrawCallback, &drawCallback,
+                 XNPreeditCaretCallback, &caretCallback,
+-                NULL);
++                (char*)NULL);
+ 
+         xim.ic = XCreateIC(xim.im,
+                 XNInputStyle, styles,
+                 XNClientWindow, GDK_WINDOW_XID(gdk_window),
+                 XNPreeditAttributes, list,
+-                NULL);
++                (char*)NULL);
+ 
+         XFree(list);
+ 

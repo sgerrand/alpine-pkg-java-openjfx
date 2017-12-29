@@ -1,0 +1,52 @@
+# HG changeset patch
+# User kcr
+# Date 1455666049 28800
+#      Tue Feb 16 15:40:49 2016 -0800
+# Node ID 41c09adc3b14c6ae40f2263cb91d340b2da0c05f
+# Parent  151fdd3d048f54dc4852240c3be873240d8fd4b0
+8149967: Cannot compile JFXPanel with JDK 9: SurfaceData::getDefaultScale not found
+
+diff --git a/modules/swing/src/main/java/javafx/embed/swing/JFXPanel.java b/modules/swing/src/main/java/javafx/embed/swing/JFXPanel.java
+--- a/modules/swing/src/main/java/javafx/embed/swing/JFXPanel.java
++++ b/modules/swing/src/main/java/javafx/embed/swing/JFXPanel.java
+@@ -79,6 +79,7 @@
+ import sun.awt.CausedFocusEvent;
+ import sun.awt.SunToolkit;
+ import sun.java2d.SunGraphics2D;
++import sun.java2d.SurfaceData;
+ import sun.util.logging.PlatformLogger;
+ import sun.util.logging.PlatformLogger.Level;
+ 
+@@ -648,6 +649,23 @@
+                 e.getCaret().getInsertionIndex());
+     }
+ 
++    // FIXME: once we move to JDK 9 as the boot JDK we should remove the
++    // reflection code from this method, consider changing it to
++    // use double rather than int, and account for the possibility of
++    // a different scale factor in X and Y.
++    private int getDefaultScale(SurfaceData surfaceData) {
++        /*
++        double scale = surfaceData.getDefaultScaleX();
++        */
++        double scale = 1;
++        try {
++            Method meth = SurfaceData.class.getMethod("getDefaultScaleX");
++            scale = (Double)meth.invoke(surfaceData);
++        } catch (Exception ex) {
++        }
++
++        return (int)Math.round(scale);
++    }
+ 
+     /**
+      * Overrides the {@link javax.swing.JComponent#paintComponent(Graphics)}
+@@ -689,7 +707,7 @@
+ 
+             int newScaleFactor = scaleFactor;
+             if (g instanceof SunGraphics2D) {
+-                newScaleFactor = ((SunGraphics2D)g).surfaceData.getDefaultScale();
++                newScaleFactor = getDefaultScale(((SunGraphics2D)g).surfaceData);
+             }
+             if (scaleFactor != newScaleFactor) {
+                 createResizePixelBuffer(newScaleFactor);

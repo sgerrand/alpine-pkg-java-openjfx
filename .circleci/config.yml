@@ -1,0 +1,96 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: docker:git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Create Docker volumes
+          command: |
+            docker create --name input --volume /home/builder/package alpine /bin/true
+            docker create --name output --volume /packages alpine /bin/true
+            docker cp ./APKBUILD input:/home/builder/package/
+            docker cp ./01-*.patch input:/home/builder/package/
+            docker cp ./02-*.patch input:/home/builder/package/
+            docker cp ./03-*.patch input:/home/builder/package/
+            docker cp ./04-*.patch input:/home/builder/package/
+      - run:
+          name: Build packages using Alpine 3.7
+          command: |
+            docker run --env RSA_PRIVATE_KEY="$RSA_PRIVATE_KEY" --env RSA_PRIVATE_KEY_NAME="$CIRCLE_PROJECT_USERNAME.rsa" \
+                       --volumes-from input --volumes-from output $CIRCLE_PROJECT_USERNAME/alpine-abuild:3.7
+      - run:
+          name: Extract packages
+          command: |
+            mkdir -p packages/
+            docker cp output:/packages/builder packages/builder
+      - run:
+          name: Test installing packages
+          command: |
+            cp $CIRCLE_PROJECT_USERNAME.rsa.pub /etc/apk/keys/$CIRCLE_PROJECT_USERNAME.rsa.pub
+            apk add --no-cache --no-progress ./packages/builder/x86_64/java-openjfx-*.apk
+      - run:
+          name: Remove Docker volumes
+          command: |
+            docker rm input
+            docker rm output
+          when: always
+      - store_artifacts:
+          destination: pkgs
+          path: packages
+      - persist_to_workspace:
+          root: .
+          paths:
+            - packages
+    working_directory: ~/alpine-pkg-java-openjfx
+  release-master:
+    docker:
+      - image: golang:alpine
+    steps:
+      - attach_workspace:
+          at: .
+      - run: apk add --no-cache --no-progress git
+      - run: go get github.com/tcnksm/ghr
+      - run:
+          name: Release packages
+          command: |
+            ghr -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -prerelease -delete unreleased packages
+            ghr -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -prerelease unreleased packages/builder/x86_64
+    working_directory: ~/alpine-pkg-java-openjfx
+  release-tag:
+    docker:
+      - image: golang:alpine
+    steps:
+      - attach_workspace:
+          at: .
+      - run: apk add --no-cache --no-progress git
+      - run: go get github.com/tcnksm/ghr
+      - run:
+          name: Release packages
+          command: |
+            ghr -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG packages
+            ghr -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG packages/builder/x86_64
+    working_directory: ~/alpine-pkg-java-openjfx
+workflows:
+  version: 2
+  build-test-release:
+    jobs:
+      - build
+      - release-master:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+            tags:
+              ignore: /.*/
+      - release-tag:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9]+(\.[0-9]+){1,2}(\-r\d+)?$/

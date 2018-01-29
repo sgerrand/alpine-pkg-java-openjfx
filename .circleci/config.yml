@@ -32,6 +32,9 @@ jobs:
             cp $CIRCLE_PROJECT_USERNAME.rsa.pub /etc/apk/keys/$CIRCLE_PROJECT_USERNAME.rsa.pub
             apk add --no-cache --no-progress ./packages/builder/x86_64/java-openjfx-*.apk
       - run:
+          name: Test JavaFX packager
+          command: /usr/lib/jvm/java-1.8-openjdk/bin/javapackager -version
+      - run:
           name: Remove Docker volumes
           command: |
             docker rm input

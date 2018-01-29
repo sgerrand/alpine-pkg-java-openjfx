@@ -77,6 +77,12 @@ package() {
 	install -m644 -D "${_sdkdir}/man/man1/javapackager.1" "${pkgdir}/usr/share/man/man1/javapackager.1"
 }
 
+check() {
+	cd "$srcdir/rt-$_hgtag/build/sdk/"
+
+	./bin/javapackager -version
+}
+
 dev() {
 	default_dev
 

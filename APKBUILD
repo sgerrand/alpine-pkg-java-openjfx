@@ -59,6 +59,7 @@ package() {
 
 	local _builddir="${srcdir}/rt-${_hgtag}/build"
 	local _sdkdir="${_builddir}/sdk"
+	local _graphicsmodulesdir="${srcdir}/rt-${_hgtag}/modules/graphics/build"
 	local _openjdk8dir=/usr/lib/jvm/java-1.8-openjdk
 	local _carch
 
@@ -70,6 +71,7 @@ package() {
 
 	install -d "${pkgdir}${_openjdk8dir}/jre/lib/${_carch}"
 	install -m755 "${_sdkdir}/rt/lib/${_carch}"/*.* "${pkgdir}${_openjdk8dir}/jre/lib/${_carch}"
+	install -m644 "${_graphicsmodulesdir}/libs/"**"/linux/"*.* "${pkgdir}${_openjdk8dir}/jre/lib/${_carch}"
 
 	install -d "${pkgdir}${_openjdk8dir}/jre/lib/ext"
 	install -m644 "${_sdkdir}/rt/lib/ext"/*.* "${pkgdir}${_openjdk8dir}/jre/lib/ext"
